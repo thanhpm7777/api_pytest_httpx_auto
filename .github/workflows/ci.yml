@@ -20,22 +20,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Tạo .env cho docker-compose (compose dùng env_file: .env)
-      - name: Create .env for compose
+      # Tạo .env cho docker-compose (service "tests" có env_file: .env)
+      - name: Create .env for compose (login-based)
         run: |
           {
             echo "BASE_URL=${{ secrets.BASE_URL }}"
-            echo "API_SCHEMA_URL=${{ secrets.API_SCHEMA_URL }}"
             echo "API_USERNAME=${{ secrets.API_USERNAME }}"
             echo "API_PASSWORD=${{ secrets.API_PASSWORD }}"
-            echo "API_TOKEN=${{ secrets.API_TOKEN }}"   # nếu bạn dùng token thay vì login
-            echo "HOST=${{ secrets.HOST }}"             # cho Locust nếu dùng
+            # optional: nếu bạn cần URL schema cho Schemathesis
+            echo "API_SCHEMA_URL=${{ secrets.API_SCHEMA_URL }}"
+            # optional: endpoint login tuỳ hệ thống. Test đọc LOGIN_PATH nếu muốn
+            echo "LOGIN_PATH=${{ vars.LOGIN_PATH || '/auth/login/' }}"
           } > .env
 
-      - name: Build images (compose)
+      - name: Build test image
         run: docker compose build tests
 
-      # PR chạy smoke; main & manual chạy full
+      # PR = smoke; main/manual = full
       - name: Decide markers
         id: plan
         shell: bash
@@ -46,14 +47,13 @@ jobs:
             echo "MARKS=" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Run tests in Docker (pytest + Allure results)
+      - name: Run tests in Docker (login inside tests)
         run: |
           docker compose run --rm tests \
             pytest ${{ steps.plan.outputs.MARKS }} -n auto \
               --alluredir=/app/reports/allure-results
 
-      # Fix quyền file do container tạo (tránh lỗi upload artifact)
-      - name: Fix permissions
+      - name: Fix permissions for artifacts
         if: always()
         run: sudo chown -R $USER:$USER reports || true
 
@@ -64,13 +64,12 @@ jobs:
           name: allure-results
           path: reports/allure-results
 
-      # (Tuỳ chọn) Generate Allure HTML bằng container official
-      - name: Generate Allure HTML (container)
+      # (tuỳ chọn) build Allure HTML bằng container official
+      - name: Generate Allure HTML
         if: always()
         run: |
           docker compose --profile allure run --rm allure
           sudo chown -R $USER:$USER reports/allure || true
-
       - name: Upload Allure HTML
         if: always()
         uses: actions/upload-artifact@v4
