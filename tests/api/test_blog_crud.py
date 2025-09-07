@@ -38,7 +38,7 @@ class TestBlogCRUD:
             resp_create = http.post(blogs_url, data=data, files=files)
 
         # Kiểm tra tạo thành công
-        assert resp_create.status_code in (100, 101), f"Create failed: {resp_create.status_code} - {resp_create.text}"
+        assert resp_create.status_code in (200, 201), f"Create failed: {resp_create.status_code} - {resp_create.text}"
         assert "application/json" in resp_create.headers.get("Content-Type", "").lower()
 
         body = resp_create.json()
