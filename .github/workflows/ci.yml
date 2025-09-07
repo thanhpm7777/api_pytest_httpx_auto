@@ -7,8 +7,6 @@ on:
   pull_request:
     branches: [ main ]
   workflow_dispatch:
-  # schedule:
-  #   - cron: "0 2 * * 5"   # 09:00 thứ 6 (UTC+7)
 
 concurrency:
   group: api-tests-${{ github.ref }}
@@ -19,20 +17,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
-      contents: write   # cần để publish gh-pages
+      contents: write     # cần để push gh-pages (publish)
+      pages: write        # chỉ cần nếu dùng Deploy Pages flow (không dùng ở đây)
+      id-token: write     # chỉ cần nếu dùng Deploy Pages flow (không dùng ở đây)
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # Tạo .env cho docker-compose (service "tests" có env_file: .env)
+      # Compose của bạn dùng env_file: .env → tạo từ secrets
       - name: Create .env for compose
         run: |
           {
             echo "BASE_URL=${{ secrets.BASE_URL }}"
             echo "API_USERNAME=${{ secrets.API_USERNAME }}"
             echo "API_PASSWORD=${{ secrets.API_PASSWORD }}"
-            # OPTIONAL
             echo "API_SCHEMA_URL=${{ secrets.API_SCHEMA_URL }}"
             echo "HOST=${{ secrets.HOST }}"
             echo "LOGIN_PATH=${{ vars.LOGIN_PATH || '/auth/login/' }}"
@@ -41,7 +40,7 @@ jobs:
       - name: Build test image (compose)
         run: docker compose build tests
 
-      # PR = smoke, main/dispatch = full
+      # PR = smoke; main/dispatch = full
       - name: Decide markers
         id: plan
         shell: bash
@@ -69,26 +68,32 @@ jobs:
           name: allure-results
           path: reports/allure-results
 
-      # ===== Allure HTML (FREE) =====
-      # Tải lịch sử cũ từ nhánh gh-pages (nếu có) để có trend/history
-      - name: Load Allure history
+      # ==== Allure HTML (miễn phí) ====
+      # 1) (Không bắt buộc) Tải history nếu NHÁNH TỒN TẠI – không fail nếu chưa có
+      - name: Try load gh-pages (history) if exists
         if: always()
-        uses: actions/checkout@v4
-        continue-on-error: true
-        with:
-          ref: gh-pages
-          path: gh-pages
+        shell: bash
+        run: |
+          if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
+            echo "gh-pages exists; checkout for history"
+            git fetch origin gh-pages:gh-pages --depth=1
+            mkdir -p gh-pages
+            git -C gh-pages init
+            git -C gh-pages checkout -B gh-pages
+            git -C gh-pages pull --depth 1 origin gh-pages || true
+          else
+            echo "gh-pages NOT found; will create later"
+          fi
 
-      # Build Allure HTML bằng action miễn phí (không cần container Allure)
+      # 2) Build Allure HTML (không yêu cầu container Allure)
       - name: Build Allure HTML
         if: always()
         uses: simple-elf/allure-report-action@v1.13
         with:
           allure_results: reports/allure-results
-          gh_pages: gh-pages
+          gh_pages: gh-pages        # nếu thư mục gh-pages không có, action vẫn build được
           allure_report: allure-report
           allure_history: allure-history
-      # Tham số & cách dùng action này theo docs. :contentReference[oaicite:1]{index=1}
 
       - name: Upload Allure HTML
         if: always()
@@ -97,11 +102,16 @@ jobs:
           name: allure-report
           path: allure-report
 
-      # (Tuỳ chọn) Publish lên GitHub Pages (free)
-      - name: Publish to GitHub Pages
+      # 3) Publish lên gh-pages – ép tạo nhánh nếu chưa tồn tại
+      - name: Publish to GitHub Pages (create/force orphan if needed)
         if: always()
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: allure-history
+          user_name: github-actions[bot]
+          user_email: 41898282+github-actions[bot]@users.noreply.github.com
+          keep_files: true
+          force_orphan: true         # tạo nhánh nếu chưa có, tránh lỗi git exit 1
+          allow_empty_commit: true
