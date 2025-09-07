@@ -1,0 +1,23 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"
+        Testcase: Tạo blog mới -> Update blog -> Kiểm tra response
+        ","3865","test_update_blog","tests.api","Sun Sep 07 15:05:21 UTC 2025","passed","Sun Sep 07 15:05:25 UTC 2025","TestBlogCRUD","test_blog_crud","",""
+"
+        Đảm bảo API tạo blog bị từ chối nếu không có Authorization token.
+        ","2181","test_create_blog_without_auth","tests.api","Sun Sep 07 15:05:20 UTC 2025","passed","Sun Sep 07 15:05:22 UTC 2025","TestBlogCRUD","test_blog_crud","",""
+"","3717","test_create_and_delete_blog","tests.api","Sun Sep 07 15:05:17 UTC 2025","passed","Sun Sep 07 15:05:21 UTC 2025","TestBlogCRUD","test_blog_crud","",""
+"Happy path: Like rồi Unlike cùng 1 blog (có token).","5365","test_like_then_unlike_blog","tests.api","Sun Sep 07 15:05:26 UTC 2025","passed","Sun Sep 07 15:05:31 UTC 2025","","test_likes","",""
+"","3669","test_register_then_login","tests.api","Sun Sep 07 15:05:16 UTC 2025","passed","Sun Sep 07 15:05:20 UTC 2025","","test_auth","",""
+"","18","test_share_create","tests.api","Sun Sep 07 09:10:27 UTC 2025","broken","Sun Sep 07 09:10:27 UTC 2025","","test_shares","",""
+"","1416","test_get_list","tests.api","Sun Sep 07 15:05:16 UTC 2025","passed","Sun Sep 07 15:05:17 UTC 2025","TestBlogCRUD","test_blog_crud","",""
+"Negative: Không token mà gọi like thì phải bị 401/403.","3340","test_like_requires_auth","tests.api","Sun Sep 07 15:05:32 UTC 2025","passed","Sun Sep 07 15:05:35 UTC 2025","","test_likes","",""
+"","3175","test_login_success","tests.api","Sun Sep 07 15:05:13 UTC 2025","passed","Sun Sep 07 15:05:16 UTC 2025","","test_auth","",""
+"
+        Create -> Delete -> Verify deleted
+        ","2820","test_delete_blog","tests.api","Sun Sep 07 15:05:24 UTC 2025","passed","Sun Sep 07 15:05:27 UTC 2025","TestBlogCRUD","test_blog_crud","",""
+"
+    Testcase: Tạo blog -> Thêm comment -> Lấy danh sách comment
+    ","3148","test_add_and_list_comment","tests.api","Sun Sep 07 15:05:27 UTC 2025","passed","Sun Sep 07 15:05:30 UTC 2025","","test_comments","",""
+"
+        Ensure delete requires auth
+        ","1072","test_delete_blog_without_auth","tests.api","Sun Sep 07 15:05:25 UTC 2025","passed","Sun Sep 07 15:05:26 UTC 2025","TestBlogCRUD","test_blog_crud","",""
