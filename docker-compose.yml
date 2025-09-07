@@ -1,0 +1,56 @@
+version: "3.9"
+
+services:
+  tests:
+    image: api-tests:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command:
+      - pytest
+      - -n
+      - auto
+    # Luôn ghi Allure results để CI upload artifact
+      - --alluredir=/app/reports/allure-results
+
+  locust:
+    image: api-tests:latest           # dùng lại image (đã cài locust trong requirements)
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command:
+      - locust
+      - -f
+      - perf/locustfile.py            # đổi lại nếu bạn dùng thư mục khác
+      - --host=${HOST:-http://host.docker.internal:8000}
+      - --web-host=0.0.0.0
+      - --web-port=8089
+    ports:
+      - "8089:8089"
+    profiles: ["perf"]                # chỉ chạy khi cần
+
+  # Tuỳ chọn: tạo Allure HTML trong container (khỏi cài Allure CLI trên runner)
+  allure:
+    image: ghcr.io/allure-framework/allure2:latest
+    working_dir: /data
+    volumes:
+      - ./reports/allure-results:/data/allure-results
+      - ./reports/allure:/data/allure
+    command:
+      - allure
+      - generate
+      - /data/allure-results
+      - -o
+      - /data/allure
+      - --clean
+    profiles: ["allure"]

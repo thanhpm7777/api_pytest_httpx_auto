@@ -1,0 +1,23 @@
+"Status","Start Time","Stop Time","Duration in ms","Parent Suite","Suite","Sub Suite","Test Class","Test Method","Name","Description"
+"passed","Sun Sep 07 20:31:18 ICT 2025","Sun Sep 07 20:31:18 ICT 2025","397","tests.api","test_likes","","","","test_like_then_unlike_blog","Happy path: Like rồi Unlike cùng 1 blog (có token)."
+"passed","Sun Sep 07 20:31:16 ICT 2025","Sun Sep 07 20:31:16 ICT 2025","140","tests.api","test_blog_crud","TestBlogCRUD","","","test_get_list",""
+"passed","Sun Sep 07 20:31:17 ICT 2025","Sun Sep 07 20:31:17 ICT 2025","364","tests.api","test_blog_crud","TestBlogCRUD","","","test_create_and_delete_blog",""
+"passed","Sun Sep 07 20:31:14 ICT 2025","Sun Sep 07 20:31:17 ICT 2025","3107","tests.api","test_auth","","","","test_register_then_login",""
+"passed","Sun Sep 07 20:31:17 ICT 2025","Sun Sep 07 20:31:18 ICT 2025","314","tests.api","test_comments","","","","test_add_and_list_comment","
+    Testcase: Tạo blog -> Thêm comment -> Lấy danh sách comment
+    "
+"passed","Sun Sep 07 20:31:16 ICT 2025","Sun Sep 07 20:31:16 ICT 2025","779","tests.api","test_blog_crud","TestBlogCRUD","","","test_delete_blog","
+        Create -> Delete -> Verify deleted
+        "
+"passed","Sun Sep 07 20:31:16 ICT 2025","Sun Sep 07 20:31:17 ICT 2025","456","tests.api","test_blog_crud","TestBlogCRUD","","","test_update_blog","
+        Testcase: Tạo blog mới -> Update blog -> Kiểm tra response
+        "
+"passed","Sun Sep 07 20:31:14 ICT 2025","Sun Sep 07 20:31:14 ICT 2025","219","tests.api","test_blog_crud","TestBlogCRUD","","","test_create_blog_without_auth","
+        Đảm bảo API tạo blog bị từ chối nếu không có Authorization token.
+        "
+"passed","Sun Sep 07 20:31:16 ICT 2025","Sun Sep 07 20:31:16 ICT 2025","256","tests.api","test_likes","","","","test_like_requires_auth","Negative: Không token mà gọi like thì phải bị 401/403."
+"broken","Sun Sep 07 16:10:27 ICT 2025","Sun Sep 07 16:10:27 ICT 2025","18","tests.api","test_shares","","","","test_share_create",""
+"passed","Sun Sep 07 20:31:14 ICT 2025","Sun Sep 07 20:31:16 ICT 2025","2193","tests.api","test_auth","","","","test_login_success",""
+"passed","Sun Sep 07 20:31:14 ICT 2025","Sun Sep 07 20:31:14 ICT 2025","177","tests.api","test_blog_crud","TestBlogCRUD","","","test_delete_blog_without_auth","
+        Ensure delete requires auth
+        "

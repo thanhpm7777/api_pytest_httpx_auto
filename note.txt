@@ -1,0 +1,30 @@
+1, khoi dong docker deskop
+2. $env:DOCKER_BUILDKIT = "1"
+docker build -t api-tests:latest .
+3.
+docker run --rm -v ${PWD}:/app -w /app api-tests:latest `
+  pytest -n auto --alluredir=/app/reports/allure-results
+
+docker run --rm -v ${PWD}:/app -w /app api-tests:latest `
+  pytest -m smoke -n auto --alluredir=/app/reports/allure-results
+
+
+#local
+# Full (trừ các suite đặc biệt nếu bạn exclude)
+pytest -n auto --alluredir=reports/allure-results
+
+# Chỉ smoke
+pytest -m smoke -n auto --alluredir=reports/allure-results
+
+xem report
+allure serve reports/allure-results
+# hoặc build tĩnh
+allure generate reports/allure-results -c -o reports/allure
+allure open reports/allure
+
+
+CI
+docker compose build tests
+docker compose run --rm tests pytest -n auto --alluredir=/app/reports/allure-results
+# hoặc
+docker compose up --build --abort-on-container-exit --exit-code-from tests
