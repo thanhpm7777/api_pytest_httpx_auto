@@ -7,30 +7,73 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+concurrency:
+  group: api-tests-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with: { python-version: '3.12' }
-      - name: Install deps
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Tạo .env cho docker-compose (compose dùng env_file: .env)
+      - name: Create .env for compose
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      - name: Run smoke + regression
-        env:
-          BASE_URL: ${{ secrets.BASE_URL }}
-          USERNAME: ${{ secrets.API_USERNAME }}
-          PASSWORD: ${{ secrets.API_PASSWORD }}
-          API_SCHEMA_URL: ${{ secrets.API_SCHEMA_URL }}
+          {
+            echo "BASE_URL=${{ secrets.BASE_URL }}"
+            echo "API_SCHEMA_URL=${{ secrets.API_SCHEMA_URL }}"
+            echo "API_USERNAME=${{ secrets.API_USERNAME }}"
+            echo "API_PASSWORD=${{ secrets.API_PASSWORD }}"
+            echo "API_TOKEN=${{ secrets.API_TOKEN }}"   # nếu bạn dùng token thay vì login
+            echo "HOST=${{ secrets.HOST }}"             # cho Locust nếu dùng
+          } > .env
+
+      - name: Build images (compose)
+        run: docker compose build tests
+
+      # PR chạy smoke; main & manual chạy full
+      - name: Decide markers
+        id: plan
+        shell: bash
         run: |
-          pytest -m "not contract and not schemathesis and not perf" -n auto --alluredir=reports/allure
-      - name: Upload Allure results
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "MARKS=-m smoke" >> "$GITHUB_OUTPUT"
+          else
+            echo "MARKS=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run tests in Docker (pytest + Allure results)
+        run: |
+          docker compose run --rm tests \
+            pytest ${{ steps.plan.outputs.MARKS }} -n auto \
+              --alluredir=/app/reports/allure-results
+
+      # Fix quyền file do container tạo (tránh lỗi upload artifact)
+      - name: Fix permissions
+        if: always()
+        run: sudo chown -R $USER:$USER reports || true
+
+      - name: Upload Allure results (raw)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: allure-results
+          path: reports/allure-results
+
+      # (Tuỳ chọn) Generate Allure HTML bằng container official
+      - name: Generate Allure HTML (container)
+        if: always()
+        run: |
+          docker compose --profile allure run --rm allure
+          sudo chown -R $USER:$USER reports/allure || true
+
+      - name: Upload Allure HTML
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
           path: reports/allure
-
-
