@@ -1,4 +1,5 @@
-name: api-tests
+# .github/workflows/ci.yml
+name: api-tests (Docker + Allure)
 
 on:
   push:
@@ -6,6 +7,8 @@ on:
   pull_request:
     branches: [ main ]
   workflow_dispatch:
+  # schedule:
+  #   - cron: "0 2 * * 5"   # 09:00 thứ 6 (UTC+7)
 
 concurrency:
   group: api-tests-${{ github.ref }}
@@ -14,29 +17,31 @@ concurrency:
 jobs:
   tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
+    permissions:
+      contents: write   # cần để publish gh-pages
 
     steps:
-      - name: Checkout
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       # Tạo .env cho docker-compose (service "tests" có env_file: .env)
-      - name: Create .env for compose (login-based)
+      - name: Create .env for compose
         run: |
           {
             echo "BASE_URL=${{ secrets.BASE_URL }}"
             echo "API_USERNAME=${{ secrets.API_USERNAME }}"
             echo "API_PASSWORD=${{ secrets.API_PASSWORD }}"
-            # optional: nếu bạn cần URL schema cho Schemathesis
+            # OPTIONAL
             echo "API_SCHEMA_URL=${{ secrets.API_SCHEMA_URL }}"
-            # optional: endpoint login tuỳ hệ thống. Test đọc LOGIN_PATH nếu muốn
+            echo "HOST=${{ secrets.HOST }}"
             echo "LOGIN_PATH=${{ vars.LOGIN_PATH || '/auth/login/' }}"
           } > .env
 
-      - name: Build test image
+      - name: Build test image (compose)
         run: docker compose build tests
 
-      # PR = smoke; main/manual = full
+      # PR = smoke, main/dispatch = full
       - name: Decide markers
         id: plan
         shell: bash
@@ -47,7 +52,7 @@ jobs:
             echo "MARKS=" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Run tests in Docker (login inside tests)
+      - name: Run tests in Docker (pytest → Allure results)
         run: |
           docker compose run --rm tests \
             pytest ${{ steps.plan.outputs.MARKS }} -n auto \
@@ -64,15 +69,39 @@ jobs:
           name: allure-results
           path: reports/allure-results
 
-      # (tuỳ chọn) build Allure HTML bằng container official
-      - name: Generate Allure HTML
+      # ===== Allure HTML (FREE) =====
+      # Tải lịch sử cũ từ nhánh gh-pages (nếu có) để có trend/history
+      - name: Load Allure history
         if: always()
-        run: |
-          docker compose --profile allure run --rm allure
-          sudo chown -R $USER:$USER reports/allure || true
+        uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      # Build Allure HTML bằng action miễn phí (không cần container Allure)
+      - name: Build Allure HTML
+        if: always()
+        uses: simple-elf/allure-report-action@v1.13
+        with:
+          allure_results: reports/allure-results
+          gh_pages: gh-pages
+          allure_report: allure-report
+          allure_history: allure-history
+      # Tham số & cách dùng action này theo docs. :contentReference[oaicite:1]{index=1}
+
       - name: Upload Allure HTML
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: allure-report
-          path: reports/allure
+          path: allure-report
+
+      # (Tuỳ chọn) Publish lên GitHub Pages (free)
+      - name: Publish to GitHub Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-history
