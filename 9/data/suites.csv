@@ -1,0 +1,23 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"","811","test_get_list","tests.api","Fri Sep 19 09:08:23 UTC 2025","passed","Fri Sep 19 09:08:23 UTC 2025","TestBlogCRUD","test_blog_crud","",""
+"
+        Create -> Delete -> Verify deleted
+        ","2805","test_delete_blog","tests.api","Fri Sep 19 09:08:30 UTC 2025","passed","Fri Sep 19 09:08:32 UTC 2025","TestBlogCRUD","test_blog_crud","",""
+"
+    Testcase: Tạo blog -> Thêm comment -> Lấy danh sách comment
+    ","2609","test_add_and_list_comment","tests.api","Fri Sep 19 09:08:32 UTC 2025","passed","Fri Sep 19 09:08:35 UTC 2025","","test_comments","",""
+"","18","test_share_create","tests.api","Sun Sep 07 09:10:27 UTC 2025","broken","Sun Sep 07 09:10:27 UTC 2025","","test_shares","",""
+"
+        Testcase: Tạo blog mới -> Update blog -> Kiểm tra response
+        ","3639","test_update_blog","tests.api","Fri Sep 19 09:08:26 UTC 2025","passed","Fri Sep 19 09:08:30 UTC 2025","TestBlogCRUD","test_blog_crud","",""
+"
+        Ensure delete requires auth
+        ","840","test_delete_blog_without_auth","tests.api","Fri Sep 19 09:08:30 UTC 2025","passed","Fri Sep 19 09:08:31 UTC 2025","TestBlogCRUD","test_blog_crud","",""
+"","3079","test_login_success","tests.api","Fri Sep 19 09:08:19 UTC 2025","passed","Fri Sep 19 09:08:22 UTC 2025","","test_auth","",""
+"Negative: Không token mà gọi like thì phải bị 401/403.","3197","test_like_requires_auth","tests.api","Fri Sep 19 09:08:34 UTC 2025","passed","Fri Sep 19 09:08:37 UTC 2025","","test_likes","",""
+"","3168","test_register_then_login","tests.api","Fri Sep 19 09:08:22 UTC 2025","passed","Fri Sep 19 09:08:26 UTC 2025","","test_auth","",""
+"
+        Đảm bảo API tạo blog bị từ chối nếu không có Authorization token.
+        ","1553","test_create_blog_without_auth","tests.api","Fri Sep 19 09:08:26 UTC 2025","passed","Fri Sep 19 09:08:27 UTC 2025","TestBlogCRUD","test_blog_crud","",""
+"","2707","test_create_and_delete_blog","tests.api","Fri Sep 19 09:08:23 UTC 2025","passed","Fri Sep 19 09:08:26 UTC 2025","TestBlogCRUD","test_blog_crud","",""
+"Happy path: Like rồi Unlike cùng 1 blog (có token).","3253","test_like_then_unlike_blog","tests.api","Fri Sep 19 09:08:31 UTC 2025","passed","Fri Sep 19 09:08:34 UTC 2025","","test_likes","",""
